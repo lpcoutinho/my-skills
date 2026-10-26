@@ -1,0 +1,10 @@
+# Third-party skills vendored into skills/. Edit this file, then run `make update`.
+# Format: <owner/repo> <ref> <selector>...
+#   path/to/skill        one skill folder ("." when SKILL.md is at the repo root)
+#   @path/plugin.json    every skill listed in that manifest (follows upstream additions/removals)
+#   exclude:a,b          skip these skills
+#   rename:a=b           install skill a as b and rewrite references to it
+
+blader/humanizer   main  .
+# code-review collides with Claude Code's built-in /code-review
+mattpocock/skills  main  @.claude-plugin/plugin.json  rename:code-review=mp-code-review

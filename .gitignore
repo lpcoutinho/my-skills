@@ -1,0 +1,19 @@
+# Caches and virtualenvs never belong in a skills repo
+.venv/
+venv/
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+
+# Credentials: this repo may become public. Nothing key- or token-shaped.
+.env
+.env.*
+*.key
+*.pem
+*secret*
+*credential*
+
+# Large binaries: keep skills text-only unless a skill truly needs an asset
+*.zip
+*.tar.gz

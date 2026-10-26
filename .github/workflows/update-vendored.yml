@@ -1,0 +1,47 @@
+# Weekly: pull every source in vendor.sources and open (or refresh) a PR with
+# the diff. Nothing reaches main, or your agents, until you merge it.
+# Needs Settings > Actions > General > "Allow GitHub Actions to create and
+# approve pull requests".
+name: Update vendored skills
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Pull upstream skills
+        run: |
+          {
+            echo "Automatic update of the third-party skills in \`vendor.sources\`."
+            echo
+            echo '```'
+            node scripts/vendor.mjs update
+            echo '```'
+            echo
+            echo "Review the diff before merging: this text becomes instructions for every agent on your machine."
+          } > "$RUNNER_TEMP/body.md"
+
+      - name: Validate
+        run: scripts/validate.sh
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: vendor/update
+          delete-branch: true
+          commit-message: "chore(vendor): update third-party skills"
+          title: "chore(vendor): update third-party skills"
+          body-path: ${{ runner.temp }}/body.md
