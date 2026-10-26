@@ -1,0 +1,3 @@
+interface:
+  display_name: "Write Article"
+  short_description: "Articles and posts in each platform's format"

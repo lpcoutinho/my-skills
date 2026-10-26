@@ -14,6 +14,7 @@ Repo de skills pessoais, instaladas globalmente por symlink. Leia o `README.md` 
 
 ## Regras para escrever skills
 
+- Toda skill é escrita em inglês: `SKILL.md`, arquivos de referência e `agents/openai.yaml`. O idioma do que a skill produz (artigo, documento, mensagem) é decidido pelo usuário: a skill pega o idioma do pedido ou confirma antes de escrever, sem idioma padrão.
 - O frontmatter precisa de `name` (igual ao nome da pasta; minúsculas, dígitos e hífen; até 64 caracteres) e `description` (até 1024 caracteres). Campos desconhecidos são ignorados pelos harnesses, mas mantenha o mínimo.
 - Mantenha a skill portável: nada de instruções que só funcionem num harness. Cite Claude Code, Codex, Cursor etc. como exemplos, nunca como requisito.
 - `description` define quando o modelo dispara a skill:
