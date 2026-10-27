@@ -35,6 +35,8 @@ const git = (args, opts = {}) =>
 //   @path/to/plugin.json   every skill listed in that manifest's "skills" field
 //   exclude:a,b            drop these skills (upstream names)
 //   rename:a=b,c=d         install upstream skill a as b, and rewrite references to it
+//   replace:from=to        rewrite literal text "from" as "to" in the source's text files
+//                          (split at the first "="; use it for plugin-only paths)
 function readSources() {
   const sources = [];
   for (const [i, raw] of fs.readFileSync(SOURCES_FILE, "utf8").split("\n").entries()) {
@@ -44,9 +46,15 @@ function readSources() {
     if (!repo?.includes("/") || !ref || rest.length === 0) {
       throw new Error(`vendor.sources:${i + 1}: expected "<owner/repo> <ref> <selector>..."`);
     }
-    const src = { repo, ref, paths: [], manifests: [], exclude: new Set(), rename: new Map() };
+    const src = { repo, ref, paths: [], manifests: [], exclude: new Set(), rename: new Map(), replace: [] };
     for (const token of rest) {
       if (token.startsWith("exclude:")) token.slice(8).split(",").forEach((n) => src.exclude.add(n));
+      else if (token.startsWith("replace:")) {
+        const body = token.slice(8);
+        const at = body.indexOf("=");
+        if (at < 1) throw new Error(`vendor.sources:${i + 1}: bad replace "${token}"`);
+        src.replace.push([body.slice(0, at), body.slice(at + 1)]);
+      }
       else if (token.startsWith("rename:")) {
         for (const pair of token.slice(7).split(",")) {
           const [from, to] = pair.split("=");
@@ -140,6 +148,28 @@ function applyRenames(dirs, rename) {
   }
 }
 
+// Literal replacements from replace:. Returns the "from" strings that matched
+// nothing, so a pattern upstream stopped using gets reported instead of
+// silently doing nothing.
+function applyReplacements(dirs, replace) {
+  const unused = new Set(replace.map(([from]) => from));
+  for (const dir of dirs) {
+    for (const file of walkFiles(dir)) {
+      if (!TEXT_EXT.has(path.extname(file))) continue;
+      const before = fs.readFileSync(file, "utf8");
+      let after = before;
+      for (const [from, to] of replace) {
+        if (after.includes(from)) {
+          after = after.split(from).join(to);
+          unused.delete(from);
+        }
+      }
+      if (after !== before) fs.writeFileSync(file, after);
+    }
+  }
+  return [...unused];
+}
+
 function update(filters, force) {
   const lockAtStart = readLock();
   const sources = readSources().filter(
@@ -192,6 +222,9 @@ function update(filters, force) {
         written.push(dest);
       }
       applyRenames(written, src.rename);
+      for (const from of applyReplacements(written, src.replace)) {
+        changed.push(`warning  replace:${from}=... matched nothing in ${src.repo}; check whether it is still needed`);
+      }
 
       for (const e of gone) {
         fs.rmSync(path.join(SKILLS_DIR, e.name), { recursive: true, force: true });

@@ -86,4 +86,6 @@ Fontes: [Cursor docs](https://cursor.com/docs/skills), [OpenCode docs](https://o
 
 Colisão de nomes: o Matt não renomeia skills que colidem com comandos nativos (`.out-of-scope/harness-name-collisions.md`) e recomenda renomear a sua cópia quando você não usa o plugin. Este repo faz isso no `vendor.sources` (`rename:code-review=mp-code-review`), e a renomeação é reaplicada a cada atualização.
 
+Caminhos de plugin: o pacote [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) é distribuído como plugin do Claude Code, e o `SKILL.md` do `ui-ux-pro-max` chama `python "${CLAUDE_PLUGIN_ROOT}/.claude/skills/ui-ux-pro-max/scripts/search.py"`. Instalada por symlink, em qualquer agente, a variável fica vazia e o comando quebra. O `vendor.sources` corrige isso com `replace:`, apontando para `$HOME/.agents/skills/ui-ux-pro-max`, que o instalador cria sempre. Do pacote, só o `ui-ux-pro-max` entrou: ele não depende das outras seis skills (`design`, `design-system`, `ui-styling`, `brand`, `banner-design`, `slides`), e elas fazem referência umas às outras.
+
 Ficou de fora, por enquanto: plugin/marketplace do Claude Code, buckets, changesets, docs por skill, hooks, rules e MCP. Dá para adicionar quando o repo crescer ou quando quiser distribuir para outras pessoas.

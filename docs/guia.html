@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guia das skills</title>
+<meta name="description" content="Como usar cada skill do repositório my-skills, com exemplos de prompt e o ciclo de spec-driven development com as skills do Matt Pocock.">
+<style>
+/* Coluna de leitura única; ciclo SDD como trilho numerado; catálogo em grade de cartões filtrável */
+:root {
+  --bg: #f6f7f6; --surface: #ffffff; --fg: #1b2321; --muted: #5b6764; --line: #dde3e1;
+  --accent: #1d6b62; --accent-soft: #e2f0ed; --you: #8a5a00; --you-soft: #fbf0d9;
+  --warn: #a33b2a; --warn-soft: #fbe9e5; --code-bg: #eef2f1;
+  --f-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121816; --surface: #19211f; --fg: #e4ebe9; --muted: #98a6a2; --line: #2b3633;
+    --accent: #5cc2b3; --accent-soft: #1d3330; --you: #e6b45c; --you-soft: #3a2e16;
+    --warn: #f08a76; --warn-soft: #3a211c; --code-bg: #212b29; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121816; --surface: #19211f; --fg: #e4ebe9; --muted: #98a6a2; --line: #2b3633;
+  --accent: #5cc2b3; --accent-soft: #1d3330; --you: #e6b45c; --you-soft: #3a2e16;
+  --warn: #f08a76; --warn-soft: #3a211c; --code-bg: #212b29; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--f-body); padding: 40px 16px 80px; }
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 5vw, 2.8rem); letter-spacing: -0.02em; }
+h2 { font-size: 1.55rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; }
+p { margin: 0; }
+section { display: flex; flex-direction: column; gap: 18px; }
+.eyebrow { font: 0.75rem var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 64ch; }
+.meta { font: 0.85rem var(--f-mono); color: var(--muted); }
+code { font-family: var(--f-mono); font-size: 0.88em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+header { display: flex; flex-direction: column; gap: 14px; }
+nav.toc { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.92rem; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 12px 28px; font-size: 0.93rem; }
+.legend div { display: flex; gap: 10px; align-items: baseline; max-width: 48ch; }
+.tag { display: inline-block; font: 0.7rem var(--f-mono); letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.tag.you { background: var(--you-soft); color: var(--you); }
+.tag.auto { background: var(--accent-soft); color: var(--accent); }
+
+/* ciclo */
+.cycle { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; counter-reset: step; }
+.cycle > li { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 0 16px; counter-increment: step; }
+.cycle > li::before { content: counter(step); grid-row: 1 / span 2; font: 500 0.85rem var(--f-mono); color: var(--accent); background: var(--accent-soft); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; z-index: 1; }
+.cycle > li::after { content: ""; position: absolute; left: 21px; top: 44px; bottom: 0; width: 2px; background: var(--line); }
+.cycle > li:last-child::after { display: none; }
+.cycle > li.zero { counter-increment: none; }
+.cycle > li.zero::before { content: "0"; background: var(--code-bg); color: var(--muted); }
+.cycle .step-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding-top: 10px; }
+.cycle .step-head b { font: 500 1rem var(--f-mono); }
+.cycle .step-head span { color: var(--muted); font-size: 0.9rem; }
+.cycle .step-body { padding: 8px 0 28px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.cycle .step-body p { font-size: 0.95rem; max-width: 70ch; }
+.out { font-size: 0.86rem; color: var(--muted); }
+.out b { font-family: var(--f-mono); font-weight: 500; color: var(--fg); }
+.loop { border: 1px dashed var(--accent); border-radius: 8px; padding: 12px 16px; font-size: 0.93rem; background: var(--surface); }
+
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 14px; }
+.note { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 0.93rem; min-width: 0; }
+.note h3 { font-size: 1rem; }
+
+.ex { display: flex; flex-direction: column; gap: 6px; }
+.ex pre { margin: 0; font: 0.82rem/1.5 var(--f-mono); background: var(--code-bg); border-left: 2px solid var(--accent); border-radius: 0 6px 6px 0; padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ex pre::before { content: "› "; color: var(--accent); }
+.ex-label { font: 0.72rem var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* sessão de exemplo */
+.session { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); overflow: hidden; }
+.session .turn { display: grid; grid-template-columns: 7rem 1fr; gap: 4px 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+.session .turn:last-child { border-bottom: 0; }
+.session .who { font: 0.75rem var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding-top: 3px; }
+.session .turn.clear { background: var(--code-bg); }
+.session .turn pre { margin: 0; font: 0.85rem/1.5 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .session .turn { grid-template-columns: 1fr; } }
+
+/* tabelas */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { min-width: 200px; }
+
+/* catálogo */
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; position: sticky; top: 0; background: var(--bg); padding-block: 10px; z-index: 5; }
+#q { flex: 1 1 220px; min-width: 0; font: inherit; font-size: 0.95rem; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 0.78rem var(--f-mono); padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--fg); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+#cat { display: flex; flex-direction: column; gap: 32px; }
+.group { display: flex; flex-direction: column; gap: 12px; }
+.group > h3 { font-size: 1.02rem; color: var(--muted); font-weight: 500; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.card-head code { background: none; padding: 0; font-size: 1rem; font-weight: 500; color: var(--fg); overflow-wrap: anywhere; }
+.card p { font-size: 0.93rem; }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 0.88rem; }
+.card dt { font: 0.72rem var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding-top: 3px; }
+.card dd { margin: 0; min-width: 0; }
+.card dd.warn { color: var(--warn); }
+.src { font: 0.72rem var(--f-mono); color: var(--muted); }
+.empty { color: var(--muted); font-style: italic; }
+
+.traps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; }
+.trap { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 0.92rem; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.trap b { font: 500 0.85rem var(--f-mono); }
+footer { font-size: 0.85rem; color: var(--muted); max-width: 72ch; display: flex; flex-direction: column; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">my-skills · 30 skills · Claude Code, Codex, Cursor, OpenCode, Kiro</span>
+  <h1>Guia das skills</h1>
+  <p class="lede">O que cada skill do repositório faz, quando usar, exemplos de prompt e como encadear as skills do Matt Pocock num ciclo de spec-driven development: da ideia à spec, da spec aos tickets, dos tickets ao PR.</p>
+  <p class="meta">Escrito a partir dos SKILL.md do repositório · skills do Matt no commit 5beb35b · ui-ux-pro-max no commit 28b3b8d · 27/10/2026</p>
+  <nav class="toc" aria-label="Seções">
+    <a href="#chamar">Como chamar</a>
+    <a href="#ciclo">Ciclo SDD</a>
+    <a href="#sessao">Uma sessão de exemplo</a>
+    <a href="#qual">Qual uso agora?</a>
+    <a href="#catalogo">Catálogo</a>
+    <a href="#armadilhas">Armadilhas</a>
+    <a href="#contexto">Fim de fase</a>
+  </nav>
+</header>
+
+<section id="chamar">
+  <h2>Duas formas de chamar</h2>
+  <div class="legend">
+    <div><span class="tag you">você digita</span><span>Só roda quando você digita o nome. O agente não chama sozinho, e outra skill também não. Quase todo o ciclo SDD é assim: você decide quando cada fase começa.</span></div>
+    <div><span class="tag auto">automática</span><span>Você pode digitar, e o agente também chama sozinho quando a tarefa combina com a descrição (“debuga isso” aciona <code>diagnosing-bugs</code>). Outras skills também chamam essas.</span></div>
+  </div>
+  <p class="prose">Na maioria dos agentes o comando é <code>/nome</code>. No Codex, mencione a skill com <code>$nome</code>. As skills ficam instaladas por symlink a partir deste repositório, então não existe o prefixo <code>mattpocock-skills:</code> do plugin: é <code>/to-spec</code>, <code>/implement</code> e assim por diante.</p>
+  <p class="prose">O <code>code-review</code> do Matt foi instalado como <code>mp-code-review</code>, porque o Claude Code tem um <code>/code-review</code> próprio e diferente. As skills do Matt que chamam a revisão (<code>implement</code>, <code>implement-spec</code>) já apontam para o nome novo.</p>
+</section>
+
+<section id="ciclo">
+  <h2>O ciclo SDD com as skills do Matt</h2>
+  <p class="prose">Spec-driven development, aqui, quer dizer: nenhuma linha de código antes de o plano estar fechado e escrito num lugar que o agente consulta. As skills do Matt dividem isso em fases, cada uma com uma saída concreta (um glossário, uma issue, um ticket, um commit). A saída de uma fase é a entrada da próxima.</p>
+
+  <ol class="cycle">
+    <li class="zero">
+      <div class="step-head"><b>/setup-matt-pocock-skills</b><span>uma vez por repositório</span></div>
+      <div class="step-body">
+        <p>Olha o repositório e pergunta, uma seção por vez: onde ficam as issues (GitHub pelo <code>gh</code>, GitLab pelo <code>glab</code>, arquivos em <code>.scratch/</code> ou outro que você descrever), se mantém os labels de triagem padrão e onde ficam o glossário e os ADRs. Mostra o rascunho antes de gravar.</p>
+        <p class="out">Saída: <b>docs/agents/</b> (issue-tracker.md, domain.md, triage-labels.md) e um bloco <b>## Agent skills</b> no CLAUDE.md ou AGENTS.md. Faça o commit.</p>
+        <div class="ex"><pre>/setup-matt-pocock-skills</pre><pre>/setup-matt-pocock-skills usa issues locais em .scratch, é um projeto só meu</pre></div>
+      </div>
+    </li>
+    <li>
+      <div class="step-head"><b>/grill-with-docs</b><span>alinhar: o plano ainda está vago</span></div>
+      <div class="step-body">
+        <p>Te entrevista em rodadas até vocês dois terem o mesmo entendimento. Por baixo, chama <code>grilling</code> (a entrevista) e <code>domain-modeling</code> (a linguagem). Termos novos vão para o <code>GLOSSARY.md</code> na hora; decisões difíceis de reverter viram ADR.</p>
+        <p class="out">Saída: <b>GLOSSARY.md</b>, <b>docs/adr/</b> e o plano fechado na conversa.</p>
+        <div class="ex"><pre>/grill-with-docs quero que o gestor exporte os pedidos do mês em CSV</pre><pre>/grill-with-docs como deve funcionar o cancelamento de uma assinatura no meio do ciclo?</pre></div>
+      </div>
+    </li>
+    <li>
+      <div class="step-head"><b>/to-spec</b><span>especificar: decisões tomadas, trabalho de várias sessões</span></div>
+      <div class="step-body">
+        <p>Não entrevista: só registra o que já foi decidido. Antes de escrever, propõe os <em>seams</em> onde a feature será testada (de preferência um só, no ponto mais alto possível) e confirma com você. A spec tem problema, solução, user stories, decisões de implementação e de teste, e o que está fora do escopo. Sem caminhos de arquivo nem código.</p>
+        <p class="out">Saída: <b>uma issue</b> no tracker com o label <b>ready-for-agent</b>.</p>
+        <div class="ex"><pre>/to-spec</pre><pre>/to-spec o mapa do wayfinder fechou, a decisão está em "Formato do CSV"</pre></div>
+      </div>
+    </li>
+    <li>
+      <div class="step-head"><b>/to-tickets</b><span>fatiar em tracer bullets</span></div>
+      <div class="step-body">
+        <p>Quebra a spec em tickets verticais: cada um atravessa todas as camadas (schema, API, UI, testes), cabe numa janela de contexto e pode ser demonstrado sozinho. Cada ticket declara quais outros o bloqueiam. Mostra a lista numerada e pergunta se a granularidade e os bloqueios estão certos antes de publicar.</p>
+        <p class="out">Saída: <b>uma issue por ticket</b>, publicadas na ordem das dependências; no tracker local, <b>.scratch/&lt;feature&gt;/issues/NN-slug.md</b>.</p>
+        <div class="ex"><pre>/to-tickets #34</pre><pre>/to-tickets o plano está nesta conversa</pre></div>
+      </div>
+    </li>
+    <li>
+      <div class="step-head"><b>/implement</b> ou <b>/implement-spec</b><span>construir</span></div>
+      <div class="step-body">
+        <p><code>/implement</code> pega um ticket, roda <code>tdd</code> nos seams combinados, typecheck e testes, chama <code>mp-code-review</code> e commita na branch atual. Um ticket por sessão, com o contexto limpo entre eles.</p>
+        <p><code>/implement-spec</code> pega a spec inteira: cria uma branch de integração, roda um subagente por ticket desbloqueado, cada um no seu worktree, junta tudo e roda uma revisão no fim. Abre PR em rascunho se o tracker fecha trabalho por PR.</p>
+        <p class="out">Saída: <b>commits</b> na branch atual, ou uma <b>branch de integração</b> com todos os tickets.</p>
+        <div class="ex"><pre>git switch -c feat/export-csv
+/implement #35</pre><pre>/implement-spec #34</pre></div>
+      </div>
+    </li>
+    <li>
+      <div class="step-head"><b>/mp-code-review</b><span>revisar contra um ponto fixo</span></div>
+      <div class="step-body">
+        <p>Já roda dentro do <code>implement</code>, mas vale chamar sozinho antes do PR. Revisa o diff desde um ponto fixo em dois eixos, cada um num subagente: <strong>Standards</strong> (segue os padrões documentados do repo e uma lista de code smells do Fowler?) e <strong>Spec</strong> (faz o que a issue pediu?). Acha a spec pelas referências nos commits.</p>
+        <p class="out">Saída: <b>dois relatórios</b> lado a lado. Não caça bugs de baixo nível: para isso, use o <code>/code-review</code> nativo do Claude Code.</p>
+        <div class="ex"><pre>/mp-code-review desde main</pre><pre>/mp-code-review desde HEAD~3, a spec é a issue #34</pre></div>
+      </div>
+    </li>
+    <li>
+      <div class="step-head"><b>/pr</b><span>entregar</span></div>
+      <div class="step-body">
+        <p>Escreve o corpo do PR em três partes: <strong>Summary</strong> (o menor visual que explica a mudança: pseudocódigo, árvore, diff resumido), <strong>Evidence</strong> (antes e depois) e <strong>Merge Danger</strong> (dá para voltar atrás? até onde quebra se estiver errado?).</p>
+        <div class="ex"><pre>/pr escreve o corpo do PR desta branch</pre></div>
+      </div>
+    </li>
+    <li>
+      <div class="step-head"><b>/retro</b><span>aprender: depois de uma sessão difícil</span></div>
+      <div class="step-body">
+        <p>Lê a sessão e sugere mudanças no <em>ambiente</em>, não no código: um ponteiro de navegação no AGENTS.md, um check automático, uma regra nova para o revisor, uma instrução que não muda nada e pode sair. Só propõe; você escolhe o que aplicar.</p>
+        <div class="ex"><pre>/retro</pre><pre>/retro o agente levou muito tempo para achar onde ficam as migrations</pre></div>
+      </div>
+    </li>
+  </ol>
+  <p class="loop">O ciclo fecha aqui: o que o <code>/retro</code> mudar no ambiente vale para o próximo <code>/grill-with-docs</code>. Mantenha as fases 1 a 3 (grill, spec, tickets) numa mesma janela de contexto, sem limpar nem compactar, para tudo partir do mesmo raciocínio. Cada <code>/implement</code> começa limpo, a partir do ticket.</p>
+
+  <div class="notes">
+    <div class="note"><h3>Cabe numa sessão?</h3><p>Pule spec e tickets: <code>/grill-with-docs</code> e depois <code>/implement</code> na mesma janela, dizendo que o plano está na conversa.</p></div>
+    <div class="note"><h3>Grande e nebuloso demais?</h3><p>Comece por <code>/wayfinder</code>. Ele monta um mapa de tickets de decisão no tracker e resolve um por vez. Quando o caminho clarear, volte ao ciclo pelo <code>/to-spec</code>.</p></div>
+    <div class="note"><h3>Uma pergunta que conversa não resolve?</h3><p>Desvie para <code>prototype</code>: código descartável numa branch própria. Olhe, responda e volte com o que aprendeu (<code>/handoff</code> leva o contexto nos dois sentidos).</p></div>
+    <div class="note"><h3>Depende de fora?</h3><p>Fato externo (API, versão, spec de terceiros): <code>research</code>. Decisão de outra pessoa: <code>/to-questionnaire</code>. Chegaram issues de outras pessoas: <code>/triage</code>.</p></div>
+  </div>
+</section>
+
+<section id="sessao">
+  <h2>Uma sessão de exemplo, do zero ao PR</h2>
+  <p class="prose">Uma feature de tamanho médio, que não cabe numa sessão. As faixas cinza são os pontos onde o contexto é limpo.</p>
+  <div class="session">
+    <div class="turn"><span class="who">uma vez</span><pre>/setup-matt-pocock-skills</pre></div>
+    <div class="turn"><span class="who">sessão 1</span><pre>/grill-with-docs quero que o gestor exporte os pedidos do mês em CSV, filtrando por loja</pre></div>
+    <div class="turn"><span class="who">sessão 1</span><pre>(responda as rodadas; “sim” aceita a recomendação dele)</pre></div>
+    <div class="turn"><span class="who">sessão 1</span><pre>/to-spec</pre></div>
+    <div class="turn"><span class="who">sessão 1</span><pre>/to-tickets #34
+(revise as fatias: cada uma deve atravessar backend, frontend e teste)</pre></div>
+    <div class="turn clear"><span class="who">limpa</span><pre>/clear</pre></div>
+    <div class="turn"><span class="who">sessão 2</span><pre>git switch -c feat/export-csv
+/implement #35</pre></div>
+    <div class="turn clear"><span class="who">limpa</span><pre>/clear</pre></div>
+    <div class="turn"><span class="who">sessão 3</span><pre>/implement #36</pre></div>
+    <div class="turn"><span class="who">sessão 3</span><pre>/mp-code-review desde main
+/pr</pre></div>
+    <div class="turn"><span class="who">se doeu</span><pre>/retro</pre></div>
+  </div>
+  <p class="prose">Prefere entregar a spec inteira de uma vez? Troque as sessões 2 e 3 por um único <code>/implement-spec #34</code> e revise só no fim.</p>
+</section>
+
+<section id="qual">
+  <h2>Qual uso agora?</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sua situação</th><th>Skill</th></tr></thead>
+      <tbody>
+        <tr><td>Não sei por onde começar</td><td><code>/ask-matt</code> descreve a situação e devolve o próximo comando</td></tr>
+        <tr><td>Ideia de feature, plano vago, estou no repo</td><td><code>/grill-with-docs</code></td></tr>
+        <tr><td>Ideia vaga, fora de qualquer repo</td><td><code>/grill-me</code></td></tr>
+        <tr><td>Já decidi e vai levar várias sessões</td><td><code>/to-spec</code> e depois <code>/to-tickets</code></td></tr>
+        <tr><td>Já decidi e cabe numa sessão</td><td><code>/implement</code></td></tr>
+        <tr><td>Esforço enorme, sem rota clara</td><td><code>/wayfinder</code></td></tr>
+        <tr><td>Uma regra concreta para fazer testando antes</td><td><code>tdd</code></td></tr>
+        <tr><td>Algo quebrou e não sei por quê</td><td><code>diagnosing-bugs</code></td></tr>
+        <tr><td>O diff segue o padrão e faz o que a spec pede?</td><td><code>mp-code-review</code></td></tr>
+        <tr><td>Caçar bugs no diff (null, corrida, off-by-one)</td><td>o <code>/code-review</code> nativo do Claude Code</td></tr>
+        <tr><td>Preciso de um fato externo</td><td><code>research</code></td></tr>
+        <tr><td>Configurar serviços, chaves ou secrets à mão</td><td><code>wizard</code></td></tr>
+        <tr><td>O código está ficando confuso</td><td><code>/improve-codebase-architecture</code></td></tr>
+        <tr><td>Vou publicar um post ou artigo</td><td><code>write-article</code></td></tr>
+        <tr><td>Vou desenhar ou revisar uma tela, componente ou design system</td><td><code>ui-ux-pro-max</code></td></tr>
+        <tr><td>O texto está com cara de IA</td><td><code>humanizer</code></td></tr>
+        <tr><td>Vou criar uma skill ou mexer no AGENTS.md</td><td><code>writing-for-agents</code></td></tr>
+        <tr><td>A sessão ficou longa e o trabalho vai para outro lugar</td><td><code>/handoff</code></td></tr>
+        <tr><td>O agente disse algo que não entendi</td><td><code>/wait-what</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="catalogo">
+  <h2>Catálogo completo</h2>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Filtrar por nome ou assunto (ex.: issue, teste, texto)" aria-label="Filtrar skills">
+    <div class="chips" role="group" aria-label="Forma de chamar">
+      <button class="chip" data-f="all" aria-pressed="true">todas</button>
+      <button class="chip" data-f="you" aria-pressed="false">você digita</button>
+      <button class="chip" data-f="auto" aria-pressed="false">automáticas</button>
+    </div>
+  </div>
+  <div id="cat"></div>
+  <p class="empty" id="none" hidden>Nenhuma skill bate com esse filtro.</p>
+</section>
+
+<section id="armadilhas">
+  <h2>Armadilhas conhecidas</h2>
+  <div class="traps">
+    <div class="trap"><b>implement commita na branch atual</b><span>Ele não cria branch nem pergunta. Crie a branch antes de rodar.</span></div>
+    <div class="trap"><b>to-spec marca ready-for-agent</b><span>Um agente autônomo que procura esse label vai tentar construir a spec inteira. Se você vai trabalhar por tickets, tire o label da spec depois do <code>/to-tickets</code>.</span></div>
+    <div class="trap"><b>grill-with-docs pula o glossário</b><span>Às vezes só a entrevista acontece. Se o <code>GLOSSARY.md</code> não mudou no fim, chame <code>domain-modeling</code>.</span></div>
+    <div class="trap"><b>Fatiar por camada</b><span>“Só o backend” e “só o frontend” não são tickets do <code>/to-tickets</code>: cada ticket atravessa todas as camadas. É a hora de reclamar, antes de publicar.</span></div>
+    <div class="trap"><b>tdd em código sem regra</b><span>Em config, cola ou CRUD puro, o teste vira cópia da implementação. Combine os seams na spec.</span></div>
+    <div class="trap"><b>research roda em segundo plano</b><span>Ele sobe um agente separado. Confira duas ou três citações do resultado: se caem num resumo e não na fonte, a pesquisa falhou.</span></div>
+    <div class="trap"><b>prototype parece o próximo passo</b><span>Se você já sabe o que construir, é <code>/implement</code>. Protótipo responde pergunta; não vira código de produção.</span></div>
+    <div class="trap"><b>Skills vendored não se editam</b><span>As do Matt e o humanizer são cópias do upstream: o <code>make update</code> sobrescreve. Para mudar o comportamento, crie outra skill.</span></div>
+  </div>
+</section>
+
+<section id="contexto">
+  <h2>Fim de fase: o que fazer com o contexto</h2>
+  <p class="prose">Na ordem em que o <code>ask-matt</code> sugere avaliar:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Opção</th><th>Quando</th></tr></thead>
+      <tbody>
+        <tr><td>Continuar</td><td>A próxima fase precisa desta conversa literalmente (grill → spec → tickets). Descarte esta opção primeiro.</td></tr>
+        <tr><td><code>/clear</code></td><td>Nada daqui importa para o que vem: entre um <code>/implement</code> e outro.</td></tr>
+        <tr><td><code>/handoff</code></td><td>O trabalho vai para outra ferramenta, outro diretório, outra pessoa, ou uma tarefa paralela. Grava um markdown portátil na pasta temporária.</td></tr>
+        <tr><td>Subagente</td><td>Uma tarefa bem delimitada que roda na própria janela e devolve um relatório.</td></tr>
+        <tr><td><code>/compact</code></td><td>Nenhuma das anteriores. É o padrão, mas a última a considerar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>Fontes: os <code>SKILL.md</code> de cada skill em <code>skills/</code>. Skills do Matt: <a href="https://github.com/mattpocock/skills">github.com/mattpocock/skills</a>. Humanizer: <a href="https://github.com/blader/humanizer">github.com/blader/humanizer</a>.</p>
+  <p>Quando o <code>make update</code> trouxer uma versão nova das skills de terceiros, confira se este guia ainda bate com elas.</p>
+</footer>
+
+</div>
+
+<script>
+const S = [
+  { g: "Escrita", items: [
+    ["write-article", "auto", "Minha", "Escreve artigos e posts no formato de cada plataforma (LinkedIn, blog, Medium). Fecha um brief antes (tema, plataforma, fontes, público e idioma, que sempre confirma), exige fonte para cada fato, passa pelo humanizer e lista o que conferir antes de publicar.", "Escrever um post novo ou adaptar um artigo existente para outra plataforma.", "Afirmações sobre você entram só se você disse; o resto vira pergunta no relatório. Links de artifact do claude.ai são privados por padrão."],
+    ["humanizer", "auto", "blader/humanizer", "Reescreve texto com cara de IA para soar como quem escreveu, sem mudar o conteúdo. Caça contrastes “não é X, é Y”, frases de efeito no fim, tríades forçadas, travessões, palavras infladas e negrito decorativo.", "Revisar qualquer prosa antes de publicar: post, README, descrição de PR.", "Se você der uma amostra do seu texto, ele imita o seu estilo, inclusive travessões se você usa."],
+    ["writing-for-agents", "auto", "Matt Pocock", "Como escrever documentos que agentes leem: skills, AGENTS.md, CLAUDE.md. Ponteiros de contexto, critérios de conclusão, quando dividir um documento, palavras que ancoram comportamento.", "Ao criar ou editar uma skill, ou mexer no AGENTS.md / CLAUDE.md.", ""]
+  ]},
+  { g: "Design e interface", items: [
+    ["ui-ux-pro-max", "auto", "nextlevelbuilder/ui-ux-pro-max-skill", "Guia de UI/UX com uma base local pesquisável: estilos, paletas, pares de fontes, 119 regras de UX, gráficos, ícones, presets de animação e boas práticas para 22 stacks (React, Next.js, Vue, Flutter, SwiftUI, shadcn e outras). Gera um design system completo para um produto novo.", "Ao criar ou revisar páginas e componentes, escolher cores, fontes e layout, ou checar acessibilidade e responsividade.", "Roda python3 com um script da própria skill, sem dependências externas. Prioriza acessibilidade e toque antes de estilo. Não serve para backend, API ou infra."]
+  ]},
+  { g: "Configurar", items: [
+    ["setup-matt-pocock-skills", "you", "Matt Pocock", "Configura o repositório para as skills de engenharia: onde ficam as issues, os labels de triagem e onde ficam glossário e ADRs. Grava em docs/agents/ e num bloco do CLAUDE.md ou AGENTS.md.", "Uma vez por repositório, antes de spec, tickets, triage ou wayfinder.", "Sem ele, as outras skills mandam você rodá-lo primeiro."]
+  ]},
+  { g: "Planejar e decidir", items: [
+    ["ask-matt", "you", "Matt Pocock", "Roteador: você descreve a situação e ele diz qual skill ou sequência usar. Não executa nada.", "Quando não sabe por onde começar, ou duas skills parecem iguais.", "Só conhece as skills do Matt, não a write-article nem o humanizer."],
+    ["grill-with-docs", "you", "Matt Pocock", "Entrevista sobre um plano até vocês terem o mesmo entendimento, gravando termos no GLOSSARY.md e decisões como ADR.", "Começo de uma mudança no repo, com o plano ainda vago.", "Chama grilling e domain-modeling. O resto do que foi decidido fica só na conversa: passe para /to-spec antes de limpar."],
+    ["grill-me", "you", "Matt Pocock", "A mesma entrevista, sem gravar nada em arquivo.", "Fora de um repositório: um plano de carreira, um produto ainda sem código.", ""],
+    ["grilling", "auto", "Matt Pocock", "A entrevista em si, em rodadas: perguntas, espera, próxima rodada. É a base das duas anteriores.", "Quando você quer que alguém teste seu raciocínio.", "Responder “sim” aceita a recomendação dele."],
+    ["wayfinder", "you", "Matt Pocock", "Para esforços maiores que uma sessão e sem rota clara. Monta um mapa (uma issue com label wayfinder:map) de tickets de decisão e resolve um por vez. Planeja; não escreve código.", "Projeto novo grande, migração com muitas incertezas, código legado confuso.", "É o fluxo mais pesado. Se cabe numa sessão, use grill-with-docs."],
+    ["to-questionnaire", "you", "Matt Pocock", "Transforma uma decisão que você não consegue tomar sozinho num questionário para quem sabe a resposta.", "A decisão depende de um cliente, de outro time, do financeiro.", ""],
+    ["research", "auto", "Matt Pocock", "Um agente em segundo plano lê fontes primárias (docs oficiais, código-fonte, specs) e grava um markdown no repo com citação em cada afirmação.", "Quando a próxima decisão espera um fato externo.", "Confira algumas citações: se apontam para resumos e não para a fonte, refaça."],
+    ["prototype", "auto", "Matt Pocock", "Código descartável para responder uma pergunta de design: lógica vira um HTML com painel de estado; UI vira variações trocáveis.", "Uma máquina de estados ou uma tela que você não consegue imaginar só conversando.", "Fica numa branch própria e nunca entra na main. O que entra é a resposta."]
+  ]},
+  { g: "Especificar e quebrar em tickets", items: [
+    ["to-spec", "you", "Matt Pocock", "Transforma a conversa numa spec (problema, solução, user stories, decisões, testes, fora de escopo) e publica como issue. Combina os seams de teste com você antes.", "Já decidiu, e o trabalho vai durar várias sessões.", "Não entrevista. Se a spec afirmar algo que você nunca disse, é defeito."],
+    ["to-tickets", "you", "Matt Pocock", "Quebra spec, plano ou conversa em tickets verticais (tracer bullets), cada um com os tickets que o bloqueiam. Mostra a lista e te questiona antes de publicar.", "Depois do /to-spec, ou direto da conversa se o plano está ali.", "Fatiar por camada é o erro mais caro. Não fecha nem altera a issue da spec."],
+    ["triage", "you", "Matt Pocock", "Passa issues (e PRs externos, se configurado) por estados: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. Recomenda e espera sua confirmação.", "Issues vindas de outras pessoas: bugs reportados, pedidos de feature.", "Não rode sobre tickets que você mesmo gerou. Todo comentário sai marcado como gerado por IA."]
+  ]},
+  { g: "Construir", items: [
+    ["implement", "you", "Matt Pocock", "Constrói um ticket, uma spec ou o plano da conversa: tdd nos seams combinados, typecheck, testes, mp-code-review e commit.", "Um ticket por sessão, limpando o contexto entre eles.", "Commita na branch atual sem perguntar. Não reabre o plano."],
+    ["implement-spec", "you", "Matt Pocock", "Entrega a spec inteira numa execução: branch de integração, um subagente por ticket desbloqueado (cada um no seu worktree), merges, revisão final e PR em rascunho se o tracker usa PRs.", "Spec com vários tickets que você quer entregue de uma vez.", "Você só revisa no fim. Exige tickets já publicados."],
+    ["tdd", "auto", "Matt Pocock", "Teste primeiro: um teste falhando, o mínimo para passar, próximo comportamento. Testes pela interface pública, nos seams.", "Comportamento com entrada e saída definidas: regra de negócio, contrato de API, validação.", "Mocks só nas fronteiras (APIs externas, tempo, aleatório). Refatoração fica para a revisão."],
+    ["wizard", "auto", "Matt Pocock", "Gera um script bash interativo que te guia pelos passos que só você pode fazer: abrir um painel, copiar uma chave, gravar no .env e nos secrets do CI.", "Configurar serviços de terceiros, uma migração única com ordem certa.", "O agente escreve o script; quem roda é você."]
+  ]},
+  { g: "Revisar e entregar", items: [
+    ["mp-code-review", "auto", "Matt Pocock (code-review)", "Revisa o diff desde um ponto fixo em dois eixos paralelos: Standards (padrões documentados do repo + code smells do Fowler) e Spec (faz o que a issue pediu?).", "Quando o diff existe e você quer saber se está bem feito e se é a coisa certa.", "Diga o ponto fixo (ex.: main). Não caça bugs: para isso, o /code-review nativo."],
+    ["pr", "auto", "Matt Pocock", "Formato do corpo do PR: Summary (um visual pequeno), Evidence (antes e depois) e Merge Danger (porta de ida ou de ida e volta, raio de impacto).", "Quando a branch está pronta para revisão.", "Só escreve o corpo; não abre o PR."],
+    ["retro", "you", "Matt Pocock", "Lê a sessão e propõe melhorias no ambiente: ponteiros de navegação, checks automáticos, regras para o revisor, instruções inúteis para cortar.", "No fim de uma sessão que foi mais difícil do que devia.", "Descarte sugestões que você não consegue ligar a um momento concreto da sessão."]
+  ]},
+  { g: "Diagnosticar e manter", items: [
+    ["diagnosing-bugs", "auto", "Matt Pocock", "Diagnóstico em fases que não deixa o agente teorizar antes de existir um comando que fica vermelho no bug e verde quando corrigido.", "Bug difícil, teste intermitente, regressão de desempenho.", "Lento de propósito. Não serve para auditoria geral."],
+    ["improve-codebase-architecture", "you", "Matt Pocock", "Varre o código atrás de módulos rasos que podiam ser profundos, gera um relatório HTML e te entrevista sobre o candidato que você escolher.", "Manutenção periódica, ou antes de uma feature grande.", "Não muda código. A refatoração entra depois pelo ciclo normal."]
+  ]},
+  { g: "Vocabulário", items: [
+    ["domain-modeling", "auto", "Matt Pocock", "Afina a linguagem do projeto: questiona termos vagos ou conflitantes, grava no GLOSSARY.md e oferece ADR para decisões que passam na barra.", "Quando as palavras são o problema: “conta” significa três coisas.", "ADR só se a decisão for difícil de reverter, surpreendente sem contexto e uma escolha real."],
+    ["codebase-design", "auto", "Matt Pocock", "Vocabulário para desenhar módulos profundos: módulo, interface, profundidade, seam, adapter.", "Quando já sabe qual módulo vai redesenhar e precisa pensar no formato.", "Teste da deleção: apague o módulo de cabeça. Se a complexidade some, ele só repassava."]
+  ]},
+  { g: "Sessão e comunicação", items: [
+    ["handoff", "you", "Matt Pocock", "Compacta a conversa num documento para outro agente continuar, com as skills sugeridas para a próxima sessão. Grava na pasta temporária, não no repo.", "Trocar de ferramenta, de diretório, passar para outra pessoa, separar uma tarefa paralela.", "Aponta para specs, issues e commits em vez de copiar o conteúdo."],
+    ["wait-what", "you", "Matt Pocock", "Quando uma resposta não fez sentido, o agente explica de novo, com o contexto que faltou e os termos do seu glossário.", "Na hora em que a mensagem não entrou.", ""],
+    ["teach", "you", "Matt Pocock", "Ensina um conceito em várias sessões, usando o diretório atual para guardar o progresso.", "Aprender uma tecnologia nova com calma.", ""]
+  ]}
+];
+
+const EX = {
+  "write-article": ["escreve um post pro LinkedIn sobre o que aprendi migrando o deploy para containers", "adapta o artigo artigos/26-10-2026/skills-linkedin.md para o Medium, em português"],
+  "humanizer": ["passa o humanizer neste README", "deixa esse texto menos com cara de IA, mantendo os fatos: (cole o texto)"],
+  "writing-for-agents": ["me ajuda a enxugar o AGENTS.md deste repo", "escreve uma skill para rodar os testes do backend no container"],
+  "setup-matt-pocock-skills": ["/setup-matt-pocock-skills", "/setup-matt-pocock-skills usa as GitHub Issues deste repo"],
+  "ask-matt": ["/ask-matt terminei o primeiro marco e quero planejar o próximo. Por onde começo?", "/ask-matt qual a diferença entre grill-with-docs e wayfinder no meu caso?"],
+  "grill-with-docs": ["/grill-with-docs quero que o gestor exporte os pedidos do mês em CSV", "/grill-with-docs como deve funcionar o estorno de uma venda feita offline?"],
+  "grill-me": ["/grill-me estou pensando em cobrar assinatura em vez de taxa por uso"],
+  "grilling": ["me questiona sobre esse plano de cache antes de eu começar", "faz um grill nessa ideia: um usuário pode pertencer a várias empresas"],
+  "wayfinder": ["/wayfinder destino: app mobile com login social e notificações, pronto para o piloto"],
+  "to-questionnaire": ["/to-questionnaire preciso que o cliente decida o que acontece quando o saldo fica negativo"],
+  "research": ["pesquisa como o provedor de pagamento confirma por webhook e que garantias de idempotência ele dá", "pesquisa o que mudou no Row Level Security do Postgres nas últimas versões"],
+  "prototype": ["faz um protótipo da máquina de estados do pedido: aberto, pago, entregue, estornado", "prototipa três layouts diferentes para a tela de checkout"],
+  "to-spec": ["/to-spec", "/to-spec #12   (depois que um mapa do wayfinder fechou)"],
+  "to-tickets": ["/to-tickets #34", "/to-tickets o plano está nesta conversa"],
+  "triage": ["/triage mostra o que precisa da minha atenção", "/triage vamos olhar a #42", "/triage move a #42 para ready-for-agent"],
+  "implement": ["/implement #35", "/implement o plano está nesta conversa, não procura arquivo de spec"],
+  "implement-spec": ["/implement-spec #34"],
+  "tdd": ["faz com TDD: compra acima do limite deve ser recusada com mensagem clara", "corrige com teste primeiro: o pagamento duplicado está gerando dois lançamentos"],
+  "wizard": ["gera um wizard para configurar as chaves do provedor de pagamento no .env e nos secrets do GitHub", "faz um wizard para a migração do banco de produção, com confirmação antes de cada passo irreversível"],
+  "mp-code-review": ["/mp-code-review desde main", "/mp-code-review desde HEAD~3, a spec é a issue #34"],
+  "pr": ["/pr escreve o corpo do PR desta branch", "abre o PR de feat/export-csv"],
+  "retro": ["/retro", "/retro o agente demorou muito para achar onde ficam as políticas de acesso"],
+  "diagnosing-bugs": ["o saldo fica negativo depois de sincronizar vendas offline. Diagnostica", "o teste de checkout falha uma vez a cada dez execuções. Debuga isso"],
+  "improve-codebase-architecture": ["/improve-codebase-architecture", "/improve-codebase-architecture foca no módulo de pagamentos. Como deixar a próxima feature fácil?"],
+  "domain-modeling": ["/domain-modeling “saldo” e “crédito” estão sendo usados como a mesma coisa. Vamos separar", "/domain-modeling registra a decisão de cobrar na conta da empresa, não do usuário"],
+  "codebase-design": ["usa codebase-design: onde deveria ficar o seam entre pedido e pagamento?", "esse service de notificação é raso ou profundo? Aplica o teste da deleção"],
+  "handoff": ["/handoff vou continuar isso amanhã em outra sessão", "/handoff vou prototipar a tela de checkout num diretório separado"],
+  "wait-what": ["/wait-what"],
+  "teach": ["/teach me ensina Row Level Security do Postgres", "/teach quero aprender testes e2e com Playwright"],
+  "ui-ux-pro-max": ["cria um design system para um SaaS de agendamento para clínicas, público adulto, visual limpo", "revisa a acessibilidade deste formulário de cadastro: contraste, labels e navegação por teclado", "quais fontes e paleta combinam com um dashboard de analytics em modo escuro, em Next.js com shadcn?"]
+};
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const cat = document.getElementById("cat");
+cat.innerHTML = S.map(grp => `
+  <div class="group" data-group>
+    <h3>${grp.g}</h3>
+    <div class="grid">${grp.items.map(([n, k, src, what, when, care]) => `
+      <article class="card" data-kind="${k}" data-text="${esc((n + " " + src + " " + what + " " + when + " " + care + " " + grp.g + " " + (EX[n] || []).join(" ")).toLowerCase())}">
+        <div class="card-head"><code>${k === "you" ? "/" : ""}${n}</code><span class="tag ${k}">${k === "you" ? "você digita" : "automática"}</span></div>
+        <span class="src">${esc(src)}</span>
+        <p>${esc(what)}</p>
+        <dl>
+          <dt>Quando</dt><dd>${esc(when)}</dd>
+          ${care ? `<dt>Cuidado</dt><dd class="warn">${esc(care)}</dd>` : ""}
+        </dl>
+        ${EX[n] ? `<div class="ex"><span class="ex-label">${EX[n].length > 1 ? "Exemplos de prompt" : "Exemplo de prompt"}</span>${EX[n].map(e => `<pre>${esc(e)}</pre>`).join("")}</div>` : ""}
+      </article>`).join("")}
+    </div>
+  </div>`).join("");
+
+const q = document.getElementById("q");
+const chips = [...document.querySelectorAll(".chip")];
+let mode = "all";
+function apply() {
+  const t = q.value.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll("[data-group]").forEach(g => {
+    let any = false;
+    g.querySelectorAll(".card").forEach(c => {
+      const ok = (mode === "all" || c.dataset.kind === mode) && (!t || c.dataset.text.includes(t));
+      c.hidden = !ok;
+      if (ok) { any = true; shown++; }
+    });
+    g.hidden = !any;
+  });
+  document.getElementById("none").hidden = shown > 0;
+}
+q.addEventListener("input", apply);
+chips.forEach(b => b.addEventListener("click", () => {
+  mode = b.dataset.f;
+  chips.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  apply();
+}));
+</script>
+</body>
+</html>

@@ -29,6 +29,7 @@ Repo de skills pessoais, instaladas globalmente por symlink. Leia o `README.md` 
 
 - As pastas listadas em `vendor.lock` são cópias do upstream. Não edite essas pastas nem o `vendor.lock`: o `scripts/vendor.mjs` sobrescreve tudo na próxima atualização. Para mudar o comportamento, crie outra skill com outro nome. Para mudar o que é puxado, edite `vendor.sources`.
 - Renomeações (`rename:a=b`) também reescrevem as referências a `a` nos arquivos de texto da mesma fonte. Depois de adicionar uma, confira com `grep -rn` se nenhuma referência ficou para trás.
+- Ao vendorizar uma skill feita para plugin do Claude Code, procure `CLAUDE_PLUGIN_ROOT` nos arquivos dela. Fora do plugin a variável é vazia e o caminho quebra; corrija com `replace:${CLAUDE_PLUGIN_ROOT}/<caminho-no-repo>=$HOME/.agents/skills/<nome>` no `vendor.sources`.
 - Depois de `make update`, revise o `git diff skills/` antes de commitar. Conteúdo de terceiros pode trazer instruções inesperadas.
 - As skills do Matt seguem as convenções dele (invocação, dependência por "call the Skill tool with X"). Veja `docs/referencias.md`.
 

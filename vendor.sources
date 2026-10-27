@@ -4,7 +4,11 @@
 #   @path/plugin.json    every skill listed in that manifest (follows upstream additions/removals)
 #   exclude:a,b          skip these skills
 #   rename:a=b           install skill a as b and rewrite references to it
+#   replace:from=to      rewrite literal text in the skill's text files (e.g. plugin-only paths)
 
 blader/humanizer   main  .
 # code-review collides with Claude Code's built-in /code-review
 mattpocock/skills  main  @.claude-plugin/plugin.json  rename:code-review=mp-code-review
+# Only ui-ux-pro-max from this pack. Its commands use ${CLAUDE_PLUGIN_ROOT}, which only
+# exists inside the Claude Code plugin; point them at the link install.sh always creates.
+nextlevelbuilder/ui-ux-pro-max-skill  main  .claude/skills/ui-ux-pro-max  replace:${CLAUDE_PLUGIN_ROOT}/.claude/skills/ui-ux-pro-max=$HOME/.agents/skills/ui-ux-pro-max

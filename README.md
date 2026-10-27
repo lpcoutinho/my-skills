@@ -36,15 +36,16 @@ make uninstall   # remove só os links que apontam para este repo
 make validate    # checa o frontmatter de todos os SKILL.md
 ```
 
-Requisitos: bash, git, Node 18+ (só para atualizar skills de terceiros).
+Requisitos: bash, git, Node 18+ (só para atualizar skills de terceiros) e Python 3 (só para os scripts do `ui-ux-pro-max`, sem dependências externas).
 
 ## Skills
 
-Lista completa com o commit de origem: `make vendored`.
+Como usar cada uma, com exemplos de prompt e o ciclo de spec-driven development com as skills do Matt: [docs/guia.html](docs/guia.html) (abra no navegador). Lista completa com o commit de origem: `make vendored`.
 
 | Origem | Skills |
 | --- | --- |
 | **Minhas** | [write-article](skills/write-article/SKILL.md): escreve artigos e posts no formato de cada plataforma (LinkedIn, blog, Medium), a partir de fontes, e termina com o humanizer. Para adicionar uma plataforma, crie `skills/write-article/platforms/<nome>.md` e liste no passo 3 do `SKILL.md` |
+| [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | [ui-ux-pro-max](skills/ui-ux-pro-max/SKILL.md): guia de UI/UX com base pesquisável (estilos, paletas, pares de fontes, regras de UX, gráficos e boas práticas por stack) e um gerador de design system. Só esta skill do pacote; os comandos dela rodam `python3 $HOME/.agents/skills/ui-ux-pro-max/scripts/search.py` (ver `replace:` abaixo) |
 | [blader/humanizer](https://github.com/blader/humanizer) | [humanizer](skills/humanizer/SKILL.md): reescreve texto com cara de IA para soar como quem escreveu, sem mudar o conteúdo |
 | [mattpocock/skills](https://github.com/mattpocock/skills) (as 27 do plugin `mattpocock-skills`; guia: [Skills do Matt Pocock](https://claude.ai/artifact/QuypJdJuYtGhmbbSEhTTdf)) | **Fluxo:** [setup-matt-pocock-skills](skills/setup-matt-pocock-skills/SKILL.md), [ask-matt](skills/ask-matt/SKILL.md), [grill-with-docs](skills/grill-with-docs/SKILL.md), [grill-me](skills/grill-me/SKILL.md), [grilling](skills/grilling/SKILL.md), [wayfinder](skills/wayfinder/SKILL.md), [to-spec](skills/to-spec/SKILL.md), [to-tickets](skills/to-tickets/SKILL.md), [triage](skills/triage/SKILL.md), [implement](skills/implement/SKILL.md), [implement-spec](skills/implement-spec/SKILL.md), [pr](skills/pr/SKILL.md), [retro](skills/retro/SKILL.md). **Apoio:** [tdd](skills/tdd/SKILL.md), [diagnosing-bugs](skills/diagnosing-bugs/SKILL.md), [mp-code-review](skills/mp-code-review/SKILL.md), [research](skills/research/SKILL.md), [prototype](skills/prototype/SKILL.md), [wizard](skills/wizard/SKILL.md), [to-questionnaire](skills/to-questionnaire/SKILL.md), [improve-codebase-architecture](skills/improve-codebase-architecture/SKILL.md), [domain-modeling](skills/domain-modeling/SKILL.md), [codebase-design](skills/codebase-design/SKILL.md), [handoff](skills/handoff/SKILL.md), [wait-what](skills/wait-what/SKILL.md), [teach](skills/teach/SKILL.md), [writing-for-agents](skills/writing-for-agents/SKILL.md) |
 
@@ -77,7 +78,7 @@ Pastas que começam com `_` (ex.: `skills/_rascunho`) são ignoradas pelo instal
 
 Como no [repo do Akita](https://github.com/akitaonrails/my-skills), skills de terceiros são **copiadas** para cá sem o `.git` (nada de submodule). Dois arquivos controlam isso:
 
-- [`vendor.sources`](vendor.sources), editado à mão, diz **o que** puxar de cada repo. Pode ser uma pasta, `.` para skill na raiz, ou `@.claude-plugin/plugin.json` para todas as skills do plugin. Com o manifest, skills que o autor adicionar ou remover entram ou saem sozinhas. Também aceita `exclude:a,b` e `rename:a=b`.
+- [`vendor.sources`](vendor.sources), editado à mão, diz **o que** puxar de cada repo. Pode ser uma pasta, `.` para skill na raiz, ou `@.claude-plugin/plugin.json` para todas as skills do plugin. Com o manifest, skills que o autor adicionar ou remover entram ou saem sozinhas. Também aceita `exclude:a,b`, `rename:a=b` e `replace:de=para`.
 - [`vendor.lock`](vendor.lock), gerado pelo script, registra o commit de origem de cada skill.
 
 ### Por comando
@@ -109,6 +110,8 @@ dono/repo   main  simplify  rename:simplify=dono-simplify  # evita colisão com 
 ```
 
 Duas fontes não podem gerar skills com o mesmo nome. O script recusa e pede um `rename:`.
+
+Skills feitas para rodar como plugin do Claude Code às vezes chamam scripts por `${CLAUDE_PLUGIN_ROOT}`, uma variável que só existe dentro do plugin. Fora dele o caminho quebra, em qualquer agente. `replace:de=para` reescreve esse texto a cada atualização. O `ui-ux-pro-max` usa isso para apontar os comandos para `$HOME/.agents/skills/ui-ux-pro-max`, o link que o `install.sh` sempre cria. Se o upstream mudar e o texto deixar de aparecer, o `make update` avisa.
 
 Não edite pastas vendored: a próxima atualização sobrescreve a pasta, e `make update` recusa rodar enquanto houver mudanças não commitadas nela. Para adaptar uma skill, copie para outro nome.
 
